@@ -1,16 +1,30 @@
+using AccesoDatos.Datos;
+using Microsoft.EntityFrameworkCore;
+
 namespace AppWinForms
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+
+            try
+            {
+                // Crea la base de datos y aplica las migraciones pendientes
+                using (var db = new ApplicationDbContext())
+                {
+                    db.Database.Migrate();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al preparar la base de datos:\n" + ex.Message,
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             Application.Run(new FrmPacientes());
         }
     }
