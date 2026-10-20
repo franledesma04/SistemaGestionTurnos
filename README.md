@@ -1,1 +1,40 @@
-# SistemaGestionTurnos
+TP_SISTEMA_GESTION_TURNOS_LEDESMA-GIORDANO
+ETAPA 1 - IDEA DEL PROYECTO + DIAGRAMA DE CLASES:
+DESCRIPCION BREVE DEL SISTEMA: El proyecto consiste en desarrollar un Sistema de Gestión de Turnos para un consultorio, su objetivo principal es permitir administrar de manera organizada los turnos de atención de los pacientes. El sistema permitirá registrar y administrar información de pacientes, profesionales, especialidades y turnos. A través de una aplicación de escritorio desarrollada en Windows Forms, se podrán realizar operaciones de alta, baja, modificación y consulta de los datos. Las principales entidades del sistema serán:
+Paciente Persona que solicita el turno (nombre, DNI, teléfono, email, obra social).
+Profesional Médico que atiende (nombre, matrícula, especialidad, teléfono).
+Especialidad Área médica del profesional (Clínica Médica, Pediatría, etc.).
+Turno Entidad central: reserva de un paciente con un profesional en fecha/hora y estado.
+Consultorio / Agenda Espacio y disponibilidad donde se atiende el turno.
+EstadoTurno Estado del turno (Pendiente, Confirmado, Atendido, Cancelado, Ausente).
+ObraSocial Cobertura médica del paciente.
+OBJETIVOS Y FUNCIONALIDADES PREVISTAS: Objetivos específicos: Registrar y administrar los datos de los pacientes. Registrar y administrar los profesionales del consultorio. Administrar las especialidades médicas. Crear y gestionar turnos asignando un paciente a un profesional. Consultar los turnos registrados. Evitar la asignación de dos turnos al mismo profesional en la misma fecha y horario. Generar reportes que permitan obtener información útil sobre los turnos y las personas registradas.
+
+FUNCIONALIDADES ABM: ABM de Pacientes Permitirá: Alta: registrar un nuevo paciente. Baja: eliminar un paciente registrado. Modificación: actualizar sus datos. Consulta: visualizar y buscar pacientes registrados. Datos posibles: IdPaciente - Nombre - Apellido - DNI - Teléfono - Email - Fecha de nacimiento
+
+ABM de Profesionales Permitirá: Alta: registrar un nuevo profesional. Baja: eliminar un profesional. Modificación: actualizar sus datos. Consulta: visualizar profesionales registrados. Datos posibles: IdProfesional - Nombre - Apellido - Matrícula - Teléfono - Email - Especialidad - Gestión de Turnos
+
+Además el sistema permitirá gestionar los turnos: Registrar un nuevo turno - Modificar fecha y/u horario - Cancelar un turno - Consultar turnos existentes Datos principales: IdTurno - Fecha - Hora - Paciente - Profesional - Estado Los estados serian, ejemplo: Pendiente Atendido Cancelado
+
+Diagrama De Clases:
+
+https://docs.google.com/document/d/1FWxSL02NaZJ-910GnsL6LLK4P11BqdZ1JmaS7OabKVs/edit?tab=t.0
+
+REPORTES:
+Reporte 1 — Turnos del día: Mostrar todos los turnos correspondientes a una fecha determinada. Información: Hora - Paciente - Profesional - Especialidad - Estado del turno
+
+Reporte 2 — Turnos por profesional: Permitir seleccionar un profesional y consultar todos sus turnos dentro de un período determinado.
+
+Reporte 3 — Turnos por especialidad: Mostrar la cantidad y/o listado de turnos correspondientes a cada especialidad médica.
+
+Reporte 4 — Historial de turnos de un paciente: Permitir seleccionar un paciente y visualizar sus turnos anteriores y futuros, indicando: Fecha- Hora - Profesional - Especialidad - Estado.
+
+Explicación:
+
+El sistema va a estar dividido principalmente en dos proyectos: Biblioteca de Clases: va a contener las clases del sistema, el DbContext y los repositorios para trabajar con la base de datos. Windows Forms: va a contener las ventanas y formularios que va a utilizar el usuario. Por ejemplo, para guardar un nuevo turno, el usuario primero completa el formulario con los datos necesarios, como el paciente, profesional, fecha, hora y estado. Cuando presiona Guardar, se crea un objeto Turno con esos datos y se envía al repositorio mediante un método como: TurnoRepository.Agregar(turno) El repositorio se encarga de trabajar con el DbContext y guardar el turno en la base de datos usando Entity Framework Core. Por ejemplo:
+
+using var context = new ConsultorioContext();
+
+context.Turnos.Add(turno); context.SaveChanges();
+
+Antes de guardar el turno también se puede comprobar que el profesional no tenga otro turno en la misma fecha y horario. La clase Turno va a representar los datos del turno y va a estar relacionada con otras clases como Paciente y Profesional. Si el turno se guarda correctamente, Windows Forms mostrará un mensaje como "Turno guardado correctamente" y se podrá actualizar la lista de turnos. El funcionamiento general sería: Windows Forms → Repositorio → DbContext → Base de Datos De esta forma, cada parte del proyecto tiene una función diferente: Windows Forms se encarga de la interfaz, el repositorio del manejo de los datos y Entity Framework Core de guardar la información en la base de datos.
