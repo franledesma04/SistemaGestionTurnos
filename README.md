@@ -1,5 +1,5 @@
-TP_SISTEMA_GESTION_TURNOS_LEDESMA-GIORDANO
-ETAPA 1 - IDEA DEL PROYECTO + DIAGRAMA DE CLASES:
+# TP_SISTEMA_GESTION_TURNOS_LEDESMA-GIORDANO
+# ETAPA 1 - IDEA DEL PROYECTO + DIAGRAMA DE CLASES:
 DESCRIPCION BREVE DEL SISTEMA: El proyecto consiste en desarrollar un Sistema de Gestión de Turnos para un consultorio, su objetivo principal es permitir administrar de manera organizada los turnos de atención de los pacientes. El sistema permitirá registrar y administrar información de pacientes, profesionales, especialidades y turnos. A través de una aplicación de escritorio desarrollada en Windows Forms, se podrán realizar operaciones de alta, baja, modificación y consulta de los datos. Las principales entidades del sistema serán:
 Paciente Persona que solicita el turno (nombre, DNI, teléfono, email, obra social).
 Profesional Médico que atiende (nombre, matrícula, especialidad, teléfono).
