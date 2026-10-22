@@ -1,5 +1,5 @@
-using AccesoDatos.Datos;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Windows.Forms;
 
 namespace AppWinForms
 {
@@ -10,22 +10,8 @@ namespace AppWinForms
         {
             ApplicationConfiguration.Initialize();
 
-            try
-            {
-                // Crea la base de datos y aplica las migraciones pendientes
-                using (var db = new ApplicationDbContext())
-                {
-                    db.Database.Migrate();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al preparar la base de datos:\n" + ex.Message,
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
+            // Abrir el formulario de reportes
             Application.Run(new FrmPacientes());
         }
     }
-}
+}   

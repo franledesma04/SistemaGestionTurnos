@@ -1,0 +1,31 @@
+REGISTRO DE PROMPTS UTILIZADOS CON CHATGPT
+
+Proyecto: Sistema de Gestión de Turnos
+Tecnologías: C#, Windows Forms, .NET 10, Entity Framework Core y SQLite.
+
+"Explicame paso a paso cómo diseñar un formulario de reportes en Windows Forms utilizando Visual Studio 2026."
+
+"Indicame qué controles debo agregar a FrmReportes y cómo configurar sus propiedades para crear una interfaz organizada."
+
+"Ayudame a implementar un reporte que muestre todos los pacientes registrados en una base de datos SQLite utilizando Entity Framework Core."
+
+"Generá el código de una consulta que permita visualizar los profesionales registrados junto con sus especialidades."
+
+"Explicame cómo implementar un reporte de turnos filtrados por fecha utilizando un DateTimePicker y un DataGridView."
+
+"Ayudame a solucionar un error de SQLite relacionado con el ordenamiento de datos de tipo TimeSpan en una consulta LINQ."
+
+"Mostrame cómo crear un reporte de turnos pendientes y ordenar los resultados por fecha y hora."
+
+"Explicame cómo cargar pacientes en un ComboBox desde la base de datos y consultar el historial de turnos del paciente seleccionado."
+
+"Ayudame a incorporar validaciones en el formulario de pacientes para controlar campos obligatorios, DNI, teléfono, correo electrónico y fecha de nacimiento."
+
+"Indicame cómo guardar los cambios del proyecto mediante Git y subirlos a un repositorio de GitHub desde Visual Studio."
+
+Herramienta utilizada: ChatGPT.
+
+Descripción del uso: Se utilizó inteligencia artificial como herramienta de apoyo 
+durante el desarrollo del sistema, principalmente para el diseño de formularios Windows Forms, la implementación de 
+consultas y reportes con Entity Framework Core, la resolución de errores, la incorporación de validaciones y el uso de GitHub.
+oración de validaciones y el uso de GitHub.
