@@ -10,7 +10,7 @@ namespace AppWinForms
         {
             ApplicationConfiguration.Initialize();
 
-            // Abrir el formulario de reportes
+            // Abrir el formulario de especialidades
             Application.Run(new FrmPacientes());
         }
     }
