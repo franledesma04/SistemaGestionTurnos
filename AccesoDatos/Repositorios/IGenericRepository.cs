@@ -1,6 +1,5 @@
 ﻿namespace AccesoDatos.Repositorios;
 
-
 public interface IGenericRepository<T> where T : class
 {
     void Agregar(T entidad);
@@ -9,3 +8,4 @@ public interface IGenericRepository<T> where T : class
     List<T> ObtenerTodos();
     T? ObtenerPorId(int id);
 }
+

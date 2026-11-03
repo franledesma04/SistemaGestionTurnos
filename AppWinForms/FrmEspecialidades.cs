@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
 using AccesoDatos.Datos;
@@ -8,11 +7,15 @@ using AccesoDatos.Modelos;
 namespace AppWinForms
 {
     public partial class FrmEspecialidades : Form
+
     {
-        public FrmEspecialidades()
+        private readonly ApplicationDbContext _context;
+        
+        public FrmEspecialidades(ApplicationDbContext context)
         {
             InitializeComponent();
-            CargarEspecialidades();
+
+            _context = context;
         }
 
         // =====================================
@@ -23,7 +26,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var especialidades = db.Especialidades
                     .OrderBy(e => e.Nombre)
@@ -48,8 +51,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnGuardar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             string nombre = txtNombre.Text.Trim();
             string descripcion = txtDescripcion.Text.Trim();
@@ -68,7 +70,7 @@ namespace AppWinForms
 
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 bool existe = db.Especialidades
                     .Any(e => e.Nombre.ToLower() ==
@@ -113,8 +115,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnNuevo_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             LimpiarCampos();
         }
@@ -124,8 +125,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnActualizar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             CargarEspecialidades();
         }
@@ -146,8 +146,7 @@ namespace AppWinForms
         // =====================================
 
         private void MostrarError(
-            string operacion,
-            Exception ex)
+            string operacion,Exception ex)
         {
             MessageBox.Show(
                 "Error al " + operacion + ": " + ex.Message,

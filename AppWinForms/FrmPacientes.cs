@@ -10,14 +10,16 @@ namespace AppWinForms
 {
     public partial class FrmPacientes : Form
     {
-        private readonly Repositorio<Paciente> _repo = new();
+        private readonly IGenericRepository<Paciente> _repo;
 
         // null = paciente nuevo; con valor = modificación
         private int? _idSeleccionado = null;
 
-        public FrmPacientes()
+        public FrmPacientes(IGenericRepository<Paciente> repositorio)
         {
             InitializeComponent();
+
+            _repo = repositorio;
         }
 
         private void FrmPacientes_Load(object sender, EventArgs e)
@@ -183,8 +185,7 @@ namespace AppWinForms
             }
 
             // Teléfono opcional, pero numérico
-            if (telefono.Length > 0 &&
-                !Regex.IsMatch(telefono, @"^\d+$"))
+            if (telefono.Length > 0 && !Regex.IsMatch(telefono, @"^\d+$"))
             {
                 MessageBox.Show(
                     "El teléfono debe contener solamente números.",

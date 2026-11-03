@@ -9,12 +9,12 @@ namespace AppWinForms
 {
     public partial class FrmProfesionales : Form
     {
-        public FrmProfesionales()
+        private readonly ApplicationDbContext _context;
+        public FrmProfesionales(ApplicationDbContext context)
         {
             InitializeComponent();
 
-            CargarEspecialidades();
-            CargarProfesionales();
+            _context = context;
         }
 
         // =====================================
@@ -25,7 +25,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var especialidades = db.Especialidades
                     .OrderBy(e => e.Nombre)
@@ -55,7 +55,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var profesionales = db.Profesionales
                     .OrderBy(p => p.Apellido)
@@ -83,8 +83,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnGuardar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             string nombre = txtNombre.Text.Trim();
             string apellido = txtApellido.Text.Trim();
@@ -139,7 +138,7 @@ namespace AppWinForms
                 int especialidadId = Convert.ToInt32(
                     cboEspecialidad.SelectedValue);
 
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 bool matriculaExiste = db.Profesionales
                     .Any(p => p.Matricula == matricula);
@@ -185,8 +184,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnNuevo_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             LimpiarCampos();
         }
@@ -196,8 +194,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnActualizar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             CargarEspecialidades();
             CargarProfesionales();
@@ -221,8 +218,7 @@ namespace AppWinForms
         // =====================================
 
         private void MostrarError(
-            string operacion,
-            Exception ex)
+            string operacion,Exception ex)
         {
             MessageBox.Show(
                 "Error al " + operacion + ": " + ex.Message,

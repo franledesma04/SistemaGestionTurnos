@@ -1,18 +1,19 @@
-﻿using System;
+﻿using AccesoDatos.Datos;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Windows.Forms;
-using AccesoDatos.Datos;
 
 namespace AppWinForms
 {
     public partial class FrmReportes : Form
     {
-        public FrmReportes()
+        private readonly ApplicationDbContext _context;
+        public FrmReportes(ApplicationDbContext context)
         {
             InitializeComponent();
 
-            // Cargar pacientes al abrir el formulario.
-            CargarPacientes();
+            _context = context;
         }
 
         // CARGAR PACIENTES EN EL COMBOBOX
@@ -20,7 +21,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var pacientes = db.Pacientes
                     .OrderBy(p => p.Apellido)
@@ -53,7 +54,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var pacientes = db.Pacientes
                     .Select(p => new
@@ -85,7 +86,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var profesionales = db.Profesionales
                     .Select(p => new
@@ -116,7 +117,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 DateTime fechaSeleccionada = dtpFechaReporte.Value.Date;
                 DateTime fechaSiguiente = fechaSeleccionada.AddDays(1);
@@ -165,7 +166,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var turnosPendientes = db.Turnos
                     .Where(t => t.Estado == "Pendiente")
@@ -233,7 +234,7 @@ namespace AppWinForms
                 int pacienteId =
                     Convert.ToInt32(cboPacienteReporte.SelectedValue);
 
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var historial = db.Turnos
                     .Where(t => t.PacienteId == pacienteId)

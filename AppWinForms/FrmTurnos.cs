@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows.Forms;
 using AccesoDatos.Datos;
@@ -10,16 +8,12 @@ namespace AppWinForms
 {
     public partial class FrmTurnos : Form
     {
-        public FrmTurnos()
+        private readonly ApplicationDbContext _context;
+        public FrmTurnos(ApplicationDbContext context)
         {
             InitializeComponent();
 
-            cboEstado.SelectedIndex = 0;
-            dtpFecha.MinDate = DateTime.Today;
-
-            CargarPacientes();
-            CargarProfesionales();
-            CargarTurnos();
+            _context = context;
         }
 
         // =====================================
@@ -30,7 +24,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var pacientes = db.Pacientes
                     .OrderBy(p => p.Apellido)
@@ -62,7 +56,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var profesionales = db.Profesionales
                     .OrderBy(p => p.Apellido)
@@ -94,7 +88,7 @@ namespace AppWinForms
         {
             try
             {
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var turnos = db.Turnos
                     .Select(t => new
@@ -128,8 +122,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnGuardar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             if (cboPaciente.SelectedIndex < 0 ||
                 cboPaciente.SelectedValue == null)
@@ -178,7 +171,7 @@ namespace AppWinForms
                     cboEstado.SelectedItem?.ToString()
                     ?? "Pendiente";
 
-                using var db = new ApplicationDbContext();
+                var db = _context;
 
                 var turno = new Turno
                 {
@@ -216,8 +209,7 @@ namespace AppWinForms
         // =====================================
 
         private void btnActualizar_Click(
-            object sender,
-            EventArgs e)
+            object sender,EventArgs e)
         {
             CargarPacientes();
             CargarProfesionales();
@@ -229,8 +221,7 @@ namespace AppWinForms
         // =====================================
 
         private void MostrarError(
-            string operacion,
-            Exception ex)
+            string operacion,Exception ex)
         {
             MessageBox.Show(
                 "Error al " + operacion + ": " + ex.Message,
