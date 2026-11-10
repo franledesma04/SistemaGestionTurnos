@@ -32,7 +32,7 @@ namespace AppWinForms
         }
 
         // =====================================
-        // CARGAR ESPECIALIDADES
+        // CARGAR ESPECIALIDADES EN EL COMBOBOX
         // =====================================
 
         private void CargarEspecialidades()
@@ -42,11 +42,6 @@ namespace AppWinForms
                 var especialidades = _context.Especialidades
                     .AsNoTracking()
                     .OrderBy(e => e.Nombre)
-                    .Select(e => new
-                    {
-                        e.Id,
-                        e.Nombre
-                    })
                     .ToList();
 
                 cboEspecialidad.DataSource = especialidades;
@@ -56,7 +51,7 @@ namespace AppWinForms
             }
             catch (Exception ex)
             {
-                MostrarError("cargar especialidades", ex);
+                MostrarError("cargar las especialidades", ex);
             }
         }
 
@@ -70,6 +65,7 @@ namespace AppWinForms
             {
                 var profesionales = _context.Profesionales
                     .AsNoTracking()
+                    .Include(p => p.Especialidad)
                     .OrderBy(p => p.Apellido)
                     .ThenBy(p => p.Nombre)
                     .Select(p => new
@@ -95,7 +91,7 @@ namespace AppWinForms
             }
             catch (Exception ex)
             {
-                MostrarError("cargar profesionales", ex);
+                MostrarError("cargar los profesionales", ex);
             }
         }
 
@@ -109,44 +105,20 @@ namespace AppWinForms
             string apellido = txtApellido.Text.Trim();
             string matricula = txtMatricula.Text.Trim();
 
-            if (string.IsNullOrWhiteSpace(nombre))
+            if (string.IsNullOrWhiteSpace(nombre) ||
+                string.IsNullOrWhiteSpace(apellido) ||
+                string.IsNullOrWhiteSpace(matricula))
             {
                 MessageBox.Show(
-                    "Ingresá el nombre del profesional.",
+                    "Completá todos los campos del profesional.",
                     "Validación",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
-                txtNombre.Focus();
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(apellido))
-            {
-                MessageBox.Show(
-                    "Ingresá el apellido del profesional.",
-                    "Validación",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                txtApellido.Focus();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(matricula))
-            {
-                MessageBox.Show(
-                    "Ingresá la matrícula del profesional.",
-                    "Validación",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                txtMatricula.Focus();
-                return;
-            }
-
-            if (cboEspecialidad.SelectedIndex < 0 ||
-                cboEspecialidad.SelectedValue == null)
+            if (cboEspecialidad.SelectedValue == null)
             {
                 MessageBox.Show(
                     "Seleccioná una especialidad.",
@@ -159,14 +131,10 @@ namespace AppWinForms
 
             try
             {
-                int especialidadId = Convert.ToInt32(
-                    cboEspecialidad.SelectedValue);
+                bool existe = _context.Profesionales
+                    .Any(p => p.Matricula.ToLower() == matricula.ToLower());
 
-                // Verificar que la matrícula no esté repetida.
-                bool matriculaExiste = _context.Profesionales
-                    .Any(p => p.Matricula == matricula);
-
-                if (matriculaExiste)
+                if (existe)
                 {
                     MessageBox.Show(
                         "Ya existe un profesional con esa matrícula.",
@@ -177,28 +145,13 @@ namespace AppWinForms
                     return;
                 }
 
-                // Verificar que la especialidad exista.
-                bool especialidadExiste = _context.Especialidades
-                    .Any(e => e.Id == especialidadId);
-
-                if (!especialidadExiste)
-                {
-                    MessageBox.Show(
-                        "La especialidad seleccionada ya no existe.",
-                        "Validación",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-
-                    CargarEspecialidades();
-                    return;
-                }
-
                 var profesional = new Profesional
                 {
                     Nombre = nombre,
                     Apellido = apellido,
                     Matricula = matricula,
-                    EspecialidadId = especialidadId
+                    EspecialidadId = Convert.ToInt32(
+                        cboEspecialidad.SelectedValue)
                 };
 
                 _context.Profesionales.Add(profesional);
@@ -216,7 +169,7 @@ namespace AppWinForms
             catch (DbUpdateException)
             {
                 MessageBox.Show(
-                    "No se pudo guardar el profesional. Verificá que la matrícula no esté repetida.",
+                    "No se pudo guardar el profesional. Verificá que la matrícula no esté repetida y que la especialidad sea válida.",
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -247,33 +200,33 @@ namespace AppWinForms
             int profesionalId = Convert.ToInt32(
                 dgvProfesionales.SelectedRows[0].Cells["Id"].Value);
 
-            // Comprobar si tiene turnos asociados.
-            bool tieneTurnos = _context.Turnos
-                .AsNoTracking()
-                .Any(t => t.ProfesionalId == profesionalId);
-
-            if (tieneTurnos)
-            {
-                MessageBox.Show(
-                    "No se puede eliminar el profesional porque tiene turnos asociados.",
-                    "Eliminación no permitida",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                return;
-            }
-
-            var respuesta = MessageBox.Show(
-                "¿Estás seguro de que querés eliminar el profesional seleccionado?",
-                "Confirmar eliminación",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (respuesta != DialogResult.Yes)
-                return;
-
             try
             {
+                // Comprobar si tiene turnos asociados.
+                bool tieneTurnos = _context.Turnos
+                    .AsNoTracking()
+                    .Any(t => t.ProfesionalId == profesionalId);
+
+                if (tieneTurnos)
+                {
+                    MessageBox.Show(
+                        "No se puede eliminar este profesional porque tiene turnos asociados.",
+                        "Eliminación no permitida",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                var respuesta = MessageBox.Show(
+                    "¿Estás seguro de que querés eliminar el profesional seleccionado?",
+                    "Confirmar eliminación",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (respuesta != DialogResult.Yes)
+                    return;
+
                 var profesional = _context.Profesionales
                     .FirstOrDefault(p => p.Id == profesionalId);
 
@@ -304,9 +257,9 @@ namespace AppWinForms
             {
                 MessageBox.Show(
                     "No se pudo eliminar el profesional porque tiene registros relacionados.",
-                    "Error",
+                    "Eliminación no permitida",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                    MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

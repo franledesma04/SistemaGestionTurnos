@@ -2,7 +2,6 @@
 using System;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
-
 using AccesoDatos.Datos;
 using AccesoDatos.Modelos;
 using AccesoDatos.Repositorios;

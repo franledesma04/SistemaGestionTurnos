@@ -1,4 +1,5 @@
 ﻿
+
 using System;
 using System.Linq;
 using System.Windows.Forms;
@@ -154,33 +155,33 @@ namespace AppWinForms
             int especialidadId = Convert.ToInt32(
                 dgvEspecialidades.SelectedRows[0].Cells["Id"].Value);
 
-            // Comprobar si existen profesionales asociados.
-            bool tieneProfesionales = _context.Profesionales
-                .AsNoTracking()
-                .Any(p => p.EspecialidadId == especialidadId);
-
-            if (tieneProfesionales)
-            {
-                MessageBox.Show(
-                    "No se puede eliminar la especialidad porque tiene profesionales asociados.",
-                    "Eliminación no permitida",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                return;
-            }
-
-            var respuesta = MessageBox.Show(
-                "¿Estás seguro de que querés eliminar la especialidad seleccionada?",
-                "Confirmar eliminación",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (respuesta != DialogResult.Yes)
-                return;
-
             try
             {
+                // Comprobar si existen profesionales asociados.
+                bool tieneProfesionales = _context.Profesionales
+                    .AsNoTracking()
+                    .Any(p => p.EspecialidadId == especialidadId);
+
+                if (tieneProfesionales)
+                {
+                    MessageBox.Show(
+                        "No se puede eliminar esta especialidad porque tiene profesionales asociados. Primero debés quitar o reasignar esos profesionales.",
+                        "Eliminación no permitida",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                var respuesta = MessageBox.Show(
+                    "¿Estás seguro de que querés eliminar la especialidad seleccionada?",
+                    "Confirmar eliminación",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (respuesta != DialogResult.Yes)
+                    return;
+
                 var especialidad = _context.Especialidades
                     .FirstOrDefault(e => e.Id == especialidadId);
 
@@ -210,10 +211,10 @@ namespace AppWinForms
             catch (DbUpdateException)
             {
                 MessageBox.Show(
-                    "No se pudo eliminar la especialidad porque tiene registros relacionados.",
-                    "Error",
+                    "No se pudo eliminar la especialidad porque existen registros relacionados.",
+                    "Eliminación no permitida",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                    MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

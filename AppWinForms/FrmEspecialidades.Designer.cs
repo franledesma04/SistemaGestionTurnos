@@ -20,6 +20,7 @@ namespace AppWinForms
         private Button btnGuardar;
         private Button btnNuevo;
         private Button btnActualizar;
+        private Button btnEliminar;
 
         private DataGridView dgvEspecialidades;
 
@@ -46,6 +47,7 @@ namespace AppWinForms
             btnGuardar = new Button();
             btnNuevo = new Button();
             btnActualizar = new Button();
+            btnEliminar = new Button();
 
             dgvEspecialidades = new DataGridView();
 
@@ -54,22 +56,15 @@ namespace AppWinForms
 
             SuspendLayout();
 
-            // =====================================
             // TÍTULO
-            // =====================================
-
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Text = "Gestión De Especialidades";
             lblTitulo.Location = new Point(20, 30);
             lblTitulo.Size = new Size(470, 40);
-            lblTitulo.Font = new Font(
-                "Segoe UI", 17F, FontStyle.Bold);
+            lblTitulo.Font = new Font("Segoe UI", 17F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.MidnightBlue;
 
-            // =====================================
             // NOMBRE
-            // =====================================
-
             lblNombre.Name = "lblNombre";
             lblNombre.Text = "Nombre:";
             lblNombre.Location = new Point(15, 90);
@@ -79,10 +74,7 @@ namespace AppWinForms
             txtNombre.Location = new Point(95, 87);
             txtNombre.Size = new Size(400, 23);
 
-            // =====================================
             // DESCRIPCIÓN
-            // =====================================
-
             lblDescripcion.Name = "lblDescripcion";
             lblDescripcion.Text = "Descripción:";
             lblDescripcion.Location = new Point(15, 125);
@@ -92,10 +84,7 @@ namespace AppWinForms
             txtDescripcion.Location = new Point(95, 122);
             txtDescripcion.Size = new Size(400, 23);
 
-            // =====================================
             // BOTÓN GUARDAR
-            // =====================================
-
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Text = "Guardar";
             btnGuardar.Location = new Point(15, 160);
@@ -107,10 +96,7 @@ namespace AppWinForms
             btnGuardar.UseVisualStyleBackColor = false;
             btnGuardar.Click += btnGuardar_Click;
 
-            // =====================================
             // BOTÓN NUEVO
-            // =====================================
-
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Text = "Nuevo";
             btnNuevo.Location = new Point(135, 160);
@@ -122,14 +108,11 @@ namespace AppWinForms
             btnNuevo.UseVisualStyleBackColor = false;
             btnNuevo.Click += btnNuevo_Click;
 
-            // =====================================
             // BOTÓN ACTUALIZAR
-            // =====================================
-
             btnActualizar.Name = "btnActualizar";
             btnActualizar.Text = "Actualizar lista";
             btnActualizar.Location = new Point(255, 160);
-            btnActualizar.Size = new Size(130, 27);
+            btnActualizar.Size = new Size(110, 27);
             btnActualizar.BackColor = Color.SteelBlue;
             btnActualizar.ForeColor = Color.White;
             btnActualizar.FlatStyle = FlatStyle.Flat;
@@ -137,29 +120,32 @@ namespace AppWinForms
             btnActualizar.UseVisualStyleBackColor = false;
             btnActualizar.Click += btnActualizar_Click;
 
-            // =====================================
-            // TÍTULO DE LA TABLA
-            // =====================================
+            // BOTÓN ELIMINAR
+            btnEliminar.Name = "btnEliminar";
+            btnEliminar.Text = "Eliminar";
+            btnEliminar.Location = new Point(375, 160);
+            btnEliminar.Size = new Size(110, 27);
+            btnEliminar.BackColor = Color.Firebrick;
+            btnEliminar.ForeColor = Color.White;
+            btnEliminar.FlatStyle = FlatStyle.Flat;
+            btnEliminar.FlatAppearance.BorderSize = 0;
+            btnEliminar.UseVisualStyleBackColor = false;
+            btnEliminar.Click += btnEliminar_Click;
 
+            // TÍTULO DE LA TABLA
             lblListado.Name = "lblListado";
             lblListado.Text = "Especialidades registradas";
             lblListado.Location = new Point(15, 200);
             lblListado.Size = new Size(300, 23);
-            lblListado.Font = new Font(
-                "Segoe UI", 9F, FontStyle.Bold);
+            lblListado.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblListado.ForeColor = Color.MidnightBlue;
 
-            // =====================================
             // TABLA
-            // =====================================
-
             dgvEspecialidades.Name = "dgvEspecialidades";
             dgvEspecialidades.Location = new Point(15, 230);
-            dgvEspecialidades.Size = new Size(480, 95);
-            dgvEspecialidades.BackgroundColor =
-                Color.FromArgb(160, 160, 160);
-            dgvEspecialidades.BorderStyle =
-                BorderStyle.FixedSingle;
+            dgvEspecialidades.Size = new Size(480, 125);
+            dgvEspecialidades.BackgroundColor = Color.FromArgb(160, 160, 160);
+            dgvEspecialidades.BorderStyle = BorderStyle.FixedSingle;
             dgvEspecialidades.ReadOnly = true;
             dgvEspecialidades.AllowUserToAddRows = false;
             dgvEspecialidades.AllowUserToDeleteRows = false;
@@ -170,13 +156,10 @@ namespace AppWinForms
             dgvEspecialidades.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;
 
-            // =====================================
             // FORMULARIO
-            // =====================================
-
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(510, 340);
+            ClientSize = new Size(510, 375);
 
             BackColor = Color.FromArgb(245, 245, 245);
             Font = new Font("Segoe UI", 9F);
@@ -195,6 +178,7 @@ namespace AppWinForms
             Controls.Add(btnGuardar);
             Controls.Add(btnNuevo);
             Controls.Add(btnActualizar);
+            Controls.Add(btnEliminar);
             Controls.Add(lblListado);
             Controls.Add(dgvEspecialidades);
 
@@ -205,3 +189,4 @@ namespace AppWinForms
         }
     }
 }
+
