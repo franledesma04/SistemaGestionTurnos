@@ -100,7 +100,7 @@
             btnProfesionales.TabIndex = 3;
             btnProfesionales.Text = "Gestionar Profesionales";
             btnProfesionales.UseVisualStyleBackColor = false;
-            btnProfesionales.Click += new System.EventHandler(btnProfesionales_Click);
+            btnProfesionales.Click += new System.EventHandler(BtnProfesionales_Click);
 
             // 
             // btnEspecialidades

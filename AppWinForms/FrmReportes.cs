@@ -1,4 +1,5 @@
-﻿using AccesoDatos.Datos;
+﻿
+using AccesoDatos.Datos;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -9,21 +10,32 @@ namespace AppWinForms
     public partial class FrmReportes : Form
     {
         private readonly ApplicationDbContext _context;
+
         public FrmReportes(ApplicationDbContext context)
         {
             InitializeComponent();
 
             _context = context;
+
+            // Cargar los datos de los ComboBox al abrir el formulario
+            CargarPacientes();
+            CargarProfesionales();
+            CargarEspecialidades();
+
+            // Establecer las fechas iniciales
+            dtpFechaReporte.Value = DateTime.Today;
+            dtpDesdeReporte.Value = DateTime.Today;
+            dtpHastaReporte.Value = DateTime.Today;
         }
 
+        // ==========================================
         // CARGAR PACIENTES EN EL COMBOBOX
+        // ==========================================
         private void CargarPacientes()
         {
             try
             {
-                var db = _context;
-
-                var pacientes = db.Pacientes
+                var pacientes = _context.Pacientes
                     .OrderBy(p => p.Apellido)
                     .ThenBy(p => p.Nombre)
                     .Select(p => new
@@ -33,6 +45,7 @@ namespace AppWinForms
                     })
                     .ToList();
 
+                cboPacienteReporte.DataSource = null;
                 cboPacienteReporte.DataSource = pacientes;
                 cboPacienteReporte.DisplayMember = "NombreCompleto";
                 cboPacienteReporte.ValueMember = "Id";
@@ -41,22 +54,86 @@ namespace AppWinForms
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Error al cargar la lista de pacientes: " + ex.Message,
+                    "Error al cargar los pacientes: " + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
-        // REPORTE 1: PACIENTES
-        private void button1_Click(object sender, EventArgs e)
+        // ==========================================
+        // CARGAR PROFESIONALES EN EL COMBOBOX
+        // ==========================================
+        private void CargarProfesionales()
         {
             try
             {
-                var db = _context;
+                var profesionales = _context.Profesionales
+                    .OrderBy(p => p.Apellido)
+                    .ThenBy(p => p.Nombre)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        NombreCompleto = p.Apellido + ", " + p.Nombre
+                    })
+                    .ToList();
 
-                var pacientes = db.Pacientes
+                cboProfesionalReporte.DataSource = null;
+                cboProfesionalReporte.DataSource = profesionales;
+                cboProfesionalReporte.DisplayMember = "NombreCompleto";
+                cboProfesionalReporte.ValueMember = "Id";
+                cboProfesionalReporte.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al cargar los profesionales: " + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        // ==========================================
+        // CARGAR ESPECIALIDADES EN EL COMBOBOX
+        // ==========================================
+        private void CargarEspecialidades()
+        {
+            try
+            {
+                var especialidades = _context.Especialidades
+                    .OrderBy(e => e.Nombre)
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.Nombre
+                    })
+                    .ToList();
+
+                cboEspecialidadReporte.DataSource = null;
+                cboEspecialidadReporte.DataSource = especialidades;
+                cboEspecialidadReporte.DisplayMember = "Nombre";
+                cboEspecialidadReporte.ValueMember = "Id";
+                cboEspecialidadReporte.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al cargar las especialidades: " + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        // ==========================================
+        // REPORTE 1: PACIENTES
+        // ==========================================
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var pacientes = _context.Pacientes
                     .Select(p => new
                     {
                         p.Id,
@@ -76,19 +153,18 @@ namespace AppWinForms
                     "Error al cargar los pacientes: " + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
+        // ==========================================
         // REPORTE 2: PROFESIONALES CON ESPECIALIDAD
-        private void btnProfesionales_Click(object sender, EventArgs e)
+        // ==========================================
+        private void BtnProfesionales_Click(object sender, EventArgs e)
         {
             try
             {
-                var db = _context;
-
-                var profesionales = db.Profesionales
+                var profesionales = _context.Profesionales
                     .Select(p => new
                     {
                         p.Id,
@@ -107,22 +183,21 @@ namespace AppWinForms
                     "Error al cargar los profesionales: " + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
+        // ==========================================
         // REPORTE 3: TURNOS POR FECHA
-        private void btnTurnosFecha_Click(object sender, EventArgs e)
+        // ==========================================
+        private void BtnTurnosFecha_Click(object sender, EventArgs e)
         {
             try
             {
-                var db = _context;
-
                 DateTime fechaSeleccionada = dtpFechaReporte.Value.Date;
                 DateTime fechaSiguiente = fechaSeleccionada.AddDays(1);
 
-                var turnos = db.Turnos
+                var turnos = _context.Turnos
                     .Where(t => t.Fecha >= fechaSeleccionada &&
                                 t.Fecha < fechaSiguiente)
                     .Select(t => new
@@ -146,8 +221,7 @@ namespace AppWinForms
                         "No hay turnos registrados para esa fecha.",
                         "Sin resultados",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                        MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -156,19 +230,18 @@ namespace AppWinForms
                     "Error al cargar los turnos: " + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
+        // ==========================================
         // REPORTE 4: TURNOS PENDIENTES
-        private void btnPendientes_Click(object sender, EventArgs e)
+        // ==========================================
+        private void BtnPendientes_Click(object sender, EventArgs e)
         {
             try
             {
-                var db = _context;
-
-                var turnosPendientes = db.Turnos
+                var turnosPendientes = _context.Turnos
                     .Where(t => t.Estado == "Pendiente")
                     .OrderBy(t => t.Fecha)
                     .Select(t => new
@@ -185,7 +258,7 @@ namespace AppWinForms
                     .ToList();
 
                 // Ordenar por hora en memoria para evitar
-                // el error de TimeSpan en SQLite.
+                // problemas de TimeSpan en SQLite.
                 var turnosOrdenados = turnosPendientes
                     .OrderBy(t => t.Fecha)
                     .ThenBy(t => t.Hora)
@@ -199,8 +272,7 @@ namespace AppWinForms
                         "No hay turnos pendientes registrados.",
                         "Sin resultados",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                        MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -210,13 +282,14 @@ namespace AppWinForms
                     ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
+        // ==========================================
         // REPORTE 5: HISTORIAL POR PACIENTE
-        private void btnHistorial_Click(object sender, EventArgs e)
+        // ==========================================
+        private void BtnHistorial_Click(object sender, EventArgs e)
         {
             if (cboPacienteReporte.SelectedIndex == -1)
             {
@@ -224,8 +297,7 @@ namespace AppWinForms
                     "Primero seleccioná un paciente.",
                     "Atención",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
                 return;
             }
 
@@ -234,9 +306,7 @@ namespace AppWinForms
                 int pacienteId =
                     Convert.ToInt32(cboPacienteReporte.SelectedValue);
 
-                var db = _context;
-
-                var historial = db.Turnos
+                var historial = _context.Turnos
                     .Where(t => t.PacienteId == pacienteId)
                     .Select(t => new
                     {
@@ -260,8 +330,7 @@ namespace AppWinForms
                         "El paciente seleccionado no tiene turnos registrados.",
                         "Sin resultados",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                        MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -270,14 +339,162 @@ namespace AppWinForms
                     "Error al cargar el historial: " + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
         }
 
+        // ==========================================
         // EVENTO DEL TITULO
-        private void label1_Click(object sender, EventArgs e)
+        // ==========================================
+        private void Label1_Click(object sender, EventArgs e)
         {
+        }
+
+        // ==========================================
+        // REPORTE 6: TURNOS POR PROFESIONAL
+        // ==========================================
+        private void btnTurnosProfesional_Click(object sender, EventArgs e)
+        {
+            if (cboProfesionalReporte.SelectedIndex == -1)
+            {
+                MessageBox.Show(
+                    "Primero seleccioná un profesional.",
+                    "Atención",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            DateTime desde = dtpDesdeReporte.Value.Date;
+            DateTime hasta = dtpHastaReporte.Value.Date;
+
+            if (desde > hasta)
+            {
+                MessageBox.Show(
+                    "La fecha desde no puede ser posterior a la fecha hasta.",
+                    "Fechas incorrectas",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                int profesionalId =
+                    Convert.ToInt32(cboProfesionalReporte.SelectedValue);
+
+                var turnos = _context.Turnos
+                    .Where(t =>
+                        t.ProfesionalId == profesionalId &&
+                        t.Fecha >= desde &&
+                        t.Fecha < hasta.AddDays(1))
+                    .Select(t => new
+                    {
+                        t.Id,
+                        t.Fecha,
+                        t.Hora,
+                        Paciente = t.Paciente.Nombre + " " +
+                                   t.Paciente.Apellido,
+                        Profesional = t.Profesional.Nombre + " " +
+                                      t.Profesional.Apellido,
+                        Especialidad = t.Profesional.Especialidad.Nombre,
+                        t.Estado
+                    })
+                    .ToList()
+                    .OrderBy(t => t.Fecha)
+                    .ThenBy(t => t.Hora)
+                    .ToList();
+
+                dgvReportes.DataSource = turnos;
+
+                if (turnos.Count == 0)
+                {
+                    MessageBox.Show(
+                        "El profesional seleccionado no tiene turnos en ese período.",
+                        "Sin resultados",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al consultar los turnos por profesional: " +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        // ==========================================
+        // REPORTE 7: TURNOS POR ESPECIALIDAD
+        // ==========================================
+        private void btnTurnosEspecialidad_Click(object sender, EventArgs e)
+        {
+            if (cboEspecialidadReporte.SelectedIndex == -1)
+            {
+                MessageBox.Show(
+                    "Primero seleccioná una especialidad.",
+                    "Atención",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                int especialidadId =
+                    Convert.ToInt32(cboEspecialidadReporte.SelectedValue);
+
+                var turnos = _context.Turnos
+                    .Where(t =>
+                        t.Profesional.EspecialidadId == especialidadId)
+                    .Select(t => new
+                    {
+                        t.Id,
+                        t.Fecha,
+                        t.Hora,
+                        Paciente = t.Paciente.Nombre + " " +
+                                   t.Paciente.Apellido,
+                        Profesional = t.Profesional.Nombre + " " +
+                                      t.Profesional.Apellido,
+                        Especialidad = t.Profesional.Especialidad.Nombre,
+                        t.Estado
+                    })
+                    .ToList()
+                    .OrderBy(t => t.Fecha)
+                    .ThenBy(t => t.Hora)
+                    .ToList();
+
+                dgvReportes.DataSource = turnos;
+
+                if (turnos.Count == 0)
+                {
+                    MessageBox.Show(
+                        "No hay turnos registrados para esta especialidad.",
+                        "Sin resultados",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Cantidad de turnos encontrados: " + turnos.Count,
+                        "Resultado del reporte",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al consultar los turnos por especialidad: " +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }

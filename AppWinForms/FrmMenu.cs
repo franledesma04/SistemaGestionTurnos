@@ -28,7 +28,7 @@ namespace AppWinForms
             AbrirFormulario<FrmPacientes>();
         }
 
-        private void btnProfesionales_Click(object sender, EventArgs e)
+        private void BtnProfesionales_Click(object sender, EventArgs e)
         {
             AbrirFormulario<FrmProfesionales>();
         }
