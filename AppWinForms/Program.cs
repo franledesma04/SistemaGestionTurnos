@@ -18,15 +18,15 @@ namespace AppWinForms
 
             var services = new ServiceCollection();
 
-            // Base de datos
+            // Registrar el contexto de base de datos.
             services.AddDbContext<ApplicationDbContext>();
 
-            // Repositorio de pacientes
+            // Registrar el repositorio de pacientes.
             services.AddScoped<
                 IGenericRepository<Paciente>,
                 Repositorio<Paciente>>();
 
-            // Formularios
+            // Registrar los formularios.
             services.AddTransient<FrmMenu>();
             services.AddTransient<FrmPacientes>();
             services.AddTransient<FrmProfesionales>();
@@ -34,20 +34,15 @@ namespace AppWinForms
             services.AddTransient<FrmTurnos>();
             services.AddTransient<FrmReportes>();
 
-            // Crear proveedor
+            // Crear el proveedor de dependencias.
             using var serviceProvider =
                 services.BuildServiceProvider();
 
-            // Crear alcance
-            using var scope =
-                serviceProvider.CreateScope();
-
-            // Obtener menú principal
+            // Obtener el menú principal.
             var formulario =
-                scope.ServiceProvider
-                    .GetRequiredService<FrmMenu>();
+                serviceProvider.GetRequiredService<FrmMenu>();
 
-            // Iniciar aplicación
+            // Iniciar la aplicación.
             Application.Run(formulario);
         }
     }

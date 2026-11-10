@@ -1,7 +1,9 @@
+
 using System;
 using System.Linq;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using AccesoDatos.Datos;
 using AccesoDatos.Modelos;
 using AccesoDatos.Repositorios;
 using Microsoft.EntityFrameworkCore;
@@ -11,23 +13,34 @@ namespace AppWinForms
     public partial class FrmPacientes : Form
     {
         private readonly IGenericRepository<Paciente> _repo;
+        private readonly ApplicationDbContext _context;
 
-        // null = paciente nuevo; con valor = modificación
+        // null = paciente nuevo; con valor = modificación.
         private int? _idSeleccionado = null;
 
-        // Constructor para el diseñador
+        // Constructor para el diseñador.
         public FrmPacientes()
         {
             InitializeComponent();
+
             _repo = null!;
+            _context = null!;
         }
 
-        // Constructor para la aplicación
-        public FrmPacientes(IGenericRepository<Paciente> repositorio)
+        // Constructor utilizado por la aplicación.
+        public FrmPacientes(
+            IGenericRepository<Paciente> repositorio,
+            ApplicationDbContext context)
         {
             InitializeComponent();
+
             _repo = repositorio;
+            _context = context;
         }
+
+        // =====================================
+        // CARGAR FORMULARIO
+        // =====================================
 
         private void FrmPacientes_Load(object sender, EventArgs e)
         {
@@ -37,60 +50,84 @@ namespace AppWinForms
             dgvPacientes.AllowUserToAddRows = false;
             dgvPacientes.AllowUserToDeleteRows = false;
             dgvPacientes.MultiSelect = false;
+
             dgvPacientes.SelectionMode =
                 DataGridViewSelectionMode.FullRowSelect;
+
             dgvPacientes.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;
 
             CargarGrilla();
+
             LimpiarFormulario();
         }
 
+        // =====================================
         // CONSULTAR PACIENTES
+        // =====================================
+
         private void CargarGrilla()
         {
-            var pacientes = _repo.ObtenerTodos();
-
-            var filtro = txtBuscar.Text.Trim();
-
-            if (filtro.Length > 0)
+            try
             {
-                pacientes = pacientes.Where(p =>
-                    p.Nombre.Contains(
-                        filtro,
-                        StringComparison.OrdinalIgnoreCase) ||
-                    p.Apellido.Contains(
-                        filtro,
-                        StringComparison.OrdinalIgnoreCase) ||
-                    p.DNI.Contains(filtro)).ToList();
+                var pacientes = _repo.ObtenerTodos();
+
+                string filtro = txtBuscar.Text.Trim();
+
+                if (filtro.Length > 0)
+                {
+                    pacientes = pacientes.Where(p =>
+                        p.Nombre.Contains(
+                            filtro,
+                            StringComparison.OrdinalIgnoreCase) ||
+
+                        p.Apellido.Contains(
+                            filtro,
+                            StringComparison.OrdinalIgnoreCase) ||
+
+                        p.DNI.Contains(filtro))
+                        .ToList();
+                }
+
+                dgvPacientes.DataSource = pacientes
+                    .OrderBy(p => p.Apellido)
+                    .ToList();
+
+                foreach (var nombre in new[] { "Id", "Turnos" })
+                {
+                    if (dgvPacientes.Columns[nombre] is { } col)
+                        col.Visible = false;
+                }
+
+                if (dgvPacientes.Columns["FechaNacimiento"] is { } fn)
+                {
+                    fn.HeaderText = "Fecha de nacimiento";
+                    fn.DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+
+                if (dgvPacientes.Columns["Telefono"] is { } tel)
+                    tel.HeaderText = "Teléfono";
             }
-
-            dgvPacientes.DataSource =
-                pacientes.OrderBy(p => p.Apellido).ToList();
-
-            foreach (var nombre in new[] { "Id", "Turnos" })
+            catch (Exception ex)
             {
-                if (dgvPacientes.Columns[nombre] is { } col)
-                    col.Visible = false;
+                MostrarError("cargar los pacientes", ex);
             }
-
-            if (dgvPacientes.Columns["FechaNacimiento"] is { } fn)
-            {
-                fn.HeaderText = "Fecha de nacimiento";
-                fn.DefaultCellStyle.Format = "dd/MM/yyyy";
-            }
-
-            if (dgvPacientes.Columns["Telefono"] is { } tel)
-                tel.HeaderText = "Teléfono";
         }
 
+        // =====================================
         // BUSCAR
+        // =====================================
+
         private void btnBuscar_Click(object sender, EventArgs e)
         {
             CargarGrilla();
+            LimpiarFormulario();
         }
 
+        // =====================================
         // SELECCIONAR PACIENTE
+        // =====================================
+
         private void dgvPacientes_SelectionChanged(
             object sender, EventArgs e)
         {
@@ -109,7 +146,7 @@ namespace AppWinForms
             txtTelefono.Text = p.Telefono;
             txtEmail.Text = p.Email;
 
-            var fecha = p.FechaNacimiento;
+            DateTime fecha = p.FechaNacimiento;
 
             if (fecha < dtpFechaNacimiento.MinDate)
                 fecha = dtpFechaNacimiento.MinDate;
@@ -120,11 +157,18 @@ namespace AppWinForms
             dtpFechaNacimiento.Value = fecha;
         }
 
+        // =====================================
         // NUEVO PACIENTE
+        // =====================================
+
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
         }
+
+        // =====================================
+        // LIMPIAR FORMULARIO
+        // =====================================
 
         private void LimpiarFormulario()
         {
@@ -143,7 +187,10 @@ namespace AppWinForms
             txtNombre.Focus();
         }
 
+        // =====================================
         // VALIDACIONES
+        // =====================================
+
         private bool ValidarPaciente()
         {
             string nombre = txtNombre.Text.Trim();
@@ -152,7 +199,7 @@ namespace AppWinForms
             string telefono = txtTelefono.Text.Trim();
             string email = txtEmail.Text.Trim();
 
-            // Campos obligatorios
+            // Campos obligatorios.
             if (string.IsNullOrWhiteSpace(nombre) ||
                 string.IsNullOrWhiteSpace(apellido) ||
                 string.IsNullOrWhiteSpace(dni))
@@ -161,12 +208,12 @@ namespace AppWinForms
                     "Nombre, apellido y DNI son obligatorios.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
-            // Nombre y apellido: letras y espacios
+            // Nombre y apellido: letras y espacios.
             if (!Regex.IsMatch(nombre, @"^[\p{L}\s]+$") ||
                 !Regex.IsMatch(apellido, @"^[\p{L}\s]+$"))
             {
@@ -174,36 +221,37 @@ namespace AppWinForms
                     "El nombre y el apellido solo pueden contener letras.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
-            // DNI: 7 u 8 dígitos
+            // DNI: 7 u 8 dígitos.
             if (!Regex.IsMatch(dni, @"^\d{7,8}$"))
             {
                 MessageBox.Show(
                     "El DNI debe contener 7 u 8 números, sin puntos.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
-            // Teléfono opcional, pero numérico
-            if (telefono.Length > 0 && !Regex.IsMatch(telefono, @"^\d+$"))
+            // Teléfono opcional, pero numérico.
+            if (telefono.Length > 0 &&
+                !Regex.IsMatch(telefono, @"^\d+$"))
             {
                 MessageBox.Show(
                     "El teléfono debe contener solamente números.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
-            // Correo electrónico opcional
+            // Correo electrónico opcional.
             if (email.Length > 0 &&
                 !Regex.IsMatch(
                     email,
@@ -213,27 +261,30 @@ namespace AppWinForms
                     "Ingresá un correo electrónico válido.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
-            // Fecha de nacimiento
+            // Fecha de nacimiento.
             if (dtpFechaNacimiento.Value.Date > DateTime.Today)
             {
                 MessageBox.Show(
                     "La fecha de nacimiento no puede ser futura.",
                     "Validación",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return false;
             }
 
             return true;
         }
 
-        // GUARDAR O MODIFICAR
+        // =====================================
+        // GUARDAR O MODIFICAR PACIENTE
+        // =====================================
+
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             if (!ValidarPaciente())
@@ -246,8 +297,7 @@ namespace AppWinForms
                 DNI = txtDni.Text.Trim(),
                 Telefono = txtTelefono.Text.Trim(),
                 Email = txtEmail.Text.Trim(),
-                FechaNacimiento =
-                    dtpFechaNacimiento.Value.Date
+                FechaNacimiento = dtpFechaNacimiento.Value.Date
             };
 
             try
@@ -258,8 +308,9 @@ namespace AppWinForms
 
                     MessageBox.Show(
                         "Paciente agregado correctamente.",
-                        "OK"
-                    );
+                        "Guardado exitoso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -269,8 +320,9 @@ namespace AppWinForms
 
                     MessageBox.Show(
                         "Paciente modificado correctamente.",
-                        "OK"
-                    );
+                        "Modificación exitosa",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
 
                 CargarGrilla();
@@ -282,12 +334,18 @@ namespace AppWinForms
                     "No se pudo guardar. Verificá que el DNI no esté repetido.",
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MostrarError("guardar el paciente", ex);
             }
         }
 
+        // =====================================
         // ELIMINAR PACIENTE
+        // =====================================
+
         private void btnEliminar_Click(object sender, EventArgs e)
         {
             if (_idSeleccionado is null)
@@ -296,49 +354,89 @@ namespace AppWinForms
                     "Seleccioná un paciente de la grilla.",
                     "Atención",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                    MessageBoxIcon.Warning);
+
                 return;
             }
 
-            var respuesta = MessageBox.Show(
-                "¿Eliminar el paciente seleccionado?",
-                "Confirmar",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
+            int pacienteId = _idSeleccionado.Value;
 
-            if (respuesta != DialogResult.Yes)
-                return;
+            // Comprobar si tiene turnos asociados.
+            bool tieneTurnos = _context.Turnos
+                .AsNoTracking()
+                .Any(t => t.PacienteId == pacienteId);
 
-            try { 
-            var paciente = _repo.ObtenerPorId(_idSeleccionado.Value);
-
-            if (paciente == null)
+            if (tieneTurnos)
             {
                 MessageBox.Show(
-                    "No se encontró el paciente seleccionado.",
-                    "Atención",
+                    "No se puede eliminar el paciente porque tiene turnos asociados.",
+                    "Eliminación no permitida",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
                 return;
             }
 
-            _repo.Eliminar(paciente);
+            var respuesta = MessageBox.Show(
+                "¿Estás seguro de que querés eliminar el paciente seleccionado?",
+                "Confirmar eliminación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
 
-            CargarGrilla();
-            LimpiarFormulario();
+            if (respuesta != DialogResult.Yes)
+                return;
+
+            try
+            {
+                var paciente = _repo.ObtenerPorId(pacienteId);
+
+                if (paciente == null)
+                {
+                    MessageBox.Show(
+                        "No se encontró el paciente seleccionado.",
+                        "Atención",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                _repo.Eliminar(paciente);
+
+                MessageBox.Show(
+                    "Paciente eliminado correctamente.",
+                    "Eliminación exitosa",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                CargarGrilla();
+                LimpiarFormulario();
             }
             catch (DbUpdateException)
             {
                 MessageBox.Show(
-                    "No se puede eliminar: el paciente tiene turnos asociados.",
+                    "No se pudo eliminar el paciente porque tiene turnos asociados.",
                     "Error",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                    MessageBoxIcon.Error);
             }
+            catch (Exception ex)
+            {
+                MostrarError("eliminar el paciente", ex);
+            }
+        }
+
+        // =====================================
+        // MOSTRAR ERRORES
+        // =====================================
+
+        private void MostrarError(string operacion, Exception ex)
+        {
+            MessageBox.Show(
+                "Error al " + operacion + ": " + ex.Message,
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
     }
 }

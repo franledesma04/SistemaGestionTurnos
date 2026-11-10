@@ -1,19 +1,37 @@
-﻿using System;
+﻿
+using System;
 using System.Linq;
 using System.Windows.Forms;
 using AccesoDatos.Datos;
 using AccesoDatos.Modelos;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppWinForms
 {
     public partial class FrmTurnos : Form
     {
         private readonly ApplicationDbContext _context;
+
+        // Constructor para el diseñador.
+        public FrmTurnos()
+        {
+            InitializeComponent();
+            _context = null!;
+        }
+
+        // Constructor utilizado por la aplicación.
         public FrmTurnos(ApplicationDbContext context)
         {
             InitializeComponent();
 
             _context = context;
+
+            CargarPacientes();
+            CargarProfesionales();
+            CargarTurnos();
+
+            if (cboEstado.Items.Count > 0)
+                cboEstado.SelectedIndex = 0;
         }
 
         // =====================================
@@ -24,9 +42,8 @@ namespace AppWinForms
         {
             try
             {
-                var db = _context;
-
-                var pacientes = db.Pacientes
+                var pacientes = _context.Pacientes
+                    .AsNoTracking()
                     .OrderBy(p => p.Apellido)
                     .ThenBy(p => p.Nombre)
                     .Select(p => new
@@ -56,9 +73,8 @@ namespace AppWinForms
         {
             try
             {
-                var db = _context;
-
-                var profesionales = db.Profesionales
+                var profesionales = _context.Profesionales
+                    .AsNoTracking()
                     .OrderBy(p => p.Apellido)
                     .ThenBy(p => p.Nombre)
                     .Select(p => new
@@ -88,20 +104,22 @@ namespace AppWinForms
         {
             try
             {
-                var db = _context;
-
-                var turnos = db.Turnos
+                var turnos = _context.Turnos
+                    .AsNoTracking()
                     .Select(t => new
                     {
                         t.Id,
                         t.Fecha,
                         t.Hora,
+
                         Paciente =
                             t.Paciente.Nombre + " " +
                             t.Paciente.Apellido,
+
                         Profesional =
                             t.Profesional.Nombre + " " +
                             t.Profesional.Apellido,
+
                         t.Estado
                     })
                     .ToList()
@@ -110,6 +128,19 @@ namespace AppWinForms
                     .ToList();
 
                 dgvTurnos.DataSource = turnos;
+
+                dgvTurnos.ReadOnly = true;
+                dgvTurnos.AllowUserToAddRows = false;
+                dgvTurnos.AllowUserToDeleteRows = false;
+                dgvTurnos.SelectionMode =
+                    DataGridViewSelectionMode.FullRowSelect;
+                dgvTurnos.MultiSelect = false;
+                dgvTurnos.AutoSizeColumnsMode =
+                    DataGridViewAutoSizeColumnsMode.Fill;
+
+                if (dgvTurnos.Columns["Fecha"] != null)
+                    dgvTurnos.Columns["Fecha"].DefaultCellStyle.Format =
+                        "dd/MM/yyyy";
             }
             catch (Exception ex)
             {
@@ -118,12 +149,12 @@ namespace AppWinForms
         }
 
         // =====================================
-        // GUARDAR TURNO EN SQLITE
+        // GUARDAR TURNO
         // =====================================
 
-        private void btnGuardar_Click(
-            object sender,EventArgs e)
+        private void btnGuardar_Click(object sender, EventArgs e)
         {
+            // Validar paciente.
             if (cboPaciente.SelectedIndex < 0 ||
                 cboPaciente.SelectedValue == null)
             {
@@ -132,9 +163,11 @@ namespace AppWinForms
                     "Validación",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
+
                 return;
             }
 
+            // Validar profesional.
             if (cboProfesional.SelectedIndex < 0 ||
                 cboProfesional.SelectedValue == null)
             {
@@ -143,12 +176,26 @@ namespace AppWinForms
                     "Validación",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            // Validar estado.
+            if (cboEstado.SelectedIndex < 0)
+            {
+                MessageBox.Show(
+                    "Seleccioná el estado del turno.",
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 return;
             }
 
             DateTime fecha = dtpFecha.Value.Date;
             TimeSpan hora = dtpHora.Value.TimeOfDay;
 
+            // No permitir fechas anteriores.
             if (fecha < DateTime.Today)
             {
                 MessageBox.Show(
@@ -156,23 +203,75 @@ namespace AppWinForms
                     "Validación",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
+
                 return;
             }
 
             try
             {
-                int pacienteId =
-                    Convert.ToInt32(cboPaciente.SelectedValue);
+                int pacienteId = Convert.ToInt32(
+                    cboPaciente.SelectedValue);
 
-                int profesionalId =
-                    Convert.ToInt32(cboProfesional.SelectedValue);
+                int profesionalId = Convert.ToInt32(
+                    cboProfesional.SelectedValue);
 
-                string estado =
-                    cboEstado.SelectedItem?.ToString()
-                    ?? "Pendiente";
+                string estado = cboEstado.SelectedItem!.ToString()!;
 
-                var db = _context;
+                // Verificar que el paciente exista.
+                bool pacienteExiste = _context.Pacientes
+                    .AsNoTracking()
+                    .Any(p => p.Id == pacienteId);
 
+                if (!pacienteExiste)
+                {
+                    MessageBox.Show(
+                        "El paciente seleccionado ya no existe.",
+                        "Validación",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    CargarPacientes();
+                    return;
+                }
+
+                // Verificar que el profesional exista.
+                bool profesionalExiste = _context.Profesionales
+                    .AsNoTracking()
+                    .Any(p => p.Id == profesionalId);
+
+                if (!profesionalExiste)
+                {
+                    MessageBox.Show(
+                        "El profesional seleccionado ya no existe.",
+                        "Validación",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    CargarProfesionales();
+                    return;
+                }
+
+                // Verificar si el profesional ya tiene
+                // un turno en la misma fecha y horario.
+                bool horarioOcupado = _context.Turnos
+                    .AsNoTracking()
+                    .Any(t =>
+                        t.ProfesionalId == profesionalId &&
+                        t.Fecha == fecha &&
+                        t.Hora == hora);
+
+                if (horarioOcupado)
+                {
+                    MessageBox.Show(
+                        "El profesional ya tiene un turno registrado en ese horario.",
+                        "Horario ocupado",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                // Crear el turno usando solamente las claves foráneas.
                 var turno = new Turno
                 {
                     PacienteId = pacienteId,
@@ -182,8 +281,9 @@ namespace AppWinForms
                     Estado = estado
                 };
 
-                db.Turnos.Add(turno);
-                db.SaveChanges();
+                _context.Turnos.Add(turno);
+
+                _context.SaveChanges();
 
                 MessageBox.Show(
                     "Turno registrado correctamente.",
@@ -193,10 +293,15 @@ namespace AppWinForms
 
                 CargarTurnos();
 
-                cboPaciente.SelectedIndex = -1;
-                cboProfesional.SelectedIndex = -1;
-                cboEstado.SelectedIndex = 0;
-                dtpFecha.Value = DateTime.Today;
+                LimpiarCampos();
+            }
+            catch (DbUpdateException)
+            {
+                MessageBox.Show(
+                    "No se pudo registrar el turno. Verificá que el horario del profesional no esté ocupado.",
+                    "Error al guardar",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
@@ -208,8 +313,7 @@ namespace AppWinForms
         // ACTUALIZAR LISTA
         // =====================================
 
-        private void btnActualizar_Click(
-            object sender,EventArgs e)
+        private void btnActualizar_Click(object sender, EventArgs e)
         {
             CargarPacientes();
             CargarProfesionales();
@@ -217,11 +321,27 @@ namespace AppWinForms
         }
 
         // =====================================
+        // LIMPIAR CAMPOS
+        // =====================================
+
+        private void LimpiarCampos()
+        {
+            cboPaciente.SelectedIndex = -1;
+            cboProfesional.SelectedIndex = -1;
+
+            if (cboEstado.Items.Count > 0)
+                cboEstado.SelectedIndex = 0;
+
+            dtpFecha.Value = DateTime.Today;
+
+            dgvTurnos.ClearSelection();
+        }
+
+        // =====================================
         // MOSTRAR ERRORES
         // =====================================
 
-        private void MostrarError(
-            string operacion,Exception ex)
+        private void MostrarError(string operacion, Exception ex)
         {
             MessageBox.Show(
                 "Error al " + operacion + ": " + ex.Message,
@@ -231,4 +351,3 @@ namespace AppWinForms
         }
     }
 }
-
