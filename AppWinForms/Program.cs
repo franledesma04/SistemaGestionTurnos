@@ -1,6 +1,6 @@
+
 using System;
 using System.Windows.Forms;
-
 using Microsoft.Extensions.DependencyInjection;
 
 using AccesoDatos.Datos;
@@ -16,42 +16,43 @@ namespace AppWinForms
         {
             ApplicationConfiguration.Initialize();
 
-            // Crear el contenedor
             var services = new ServiceCollection();
 
-            // Registrar el contexto de base de datos
+            // Base de datos
             services.AddDbContext<ApplicationDbContext>();
 
-            // Registrar el repositorio de pacientes
+            // Repositorio de pacientes
             services.AddScoped<
                 IGenericRepository<Paciente>,
                 Repositorio<Paciente>>();
 
-            // Registrar los formularios
+            // Formularios
+            services.AddTransient<FrmMenu>();
             services.AddTransient<FrmPacientes>();
-            services.AddTransient<FrmEspecialidades>();
             services.AddTransient<FrmProfesionales>();
+            services.AddTransient<FrmEspecialidades>();
             services.AddTransient<FrmTurnos>();
             services.AddTransient<FrmReportes>();
 
-            // Construir el proveedor
+            // Crear proveedor
             using var serviceProvider =
                 services.BuildServiceProvider();
 
-            // Crear un alcance
+            // Crear alcance
             using var scope =
                 serviceProvider.CreateScope();
 
-            // Obtener el formulario inicial
+            // Obtener menú principal
             var formulario =
                 scope.ServiceProvider
-                    .GetRequiredService<FrmPacientes>();
+                    .GetRequiredService<FrmMenu>();
 
-            // Ejecutar la aplicación
+            // Iniciar aplicación
             Application.Run(formulario);
         }
     }
 }
+
 
 
 

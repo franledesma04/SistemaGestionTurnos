@@ -1,53 +1,62 @@
-﻿using System;
+﻿
+using System;
 using System.Windows.Forms;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AppWinForms
 {
     public partial class FrmMenu : Form
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        // Constructor para el diseñador de Visual Studio
         public FrmMenu()
         {
             InitializeComponent();
         }
 
+        // Constructor utilizado por la aplicación
+        public FrmMenu(IServiceProvider serviceProvider)
+        {
+            InitializeComponent();
+
+            _serviceProvider = serviceProvider;
+        }
+
         private void btnPacientes_Click(object sender, EventArgs e)
         {
-            using (FrmPacientes formulario = new FrmPacientes())
-            {
-                formulario.ShowDialog(this);
-            }
+            AbrirFormulario<FrmPacientes>();
         }
 
         private void btnProfesionales_Click(object sender, EventArgs e)
         {
-            using (FrmProfesionales formulario = new FrmProfesionales())
-            {
-                formulario.ShowDialog(this);
-            }
+            AbrirFormulario<FrmProfesionales>();
         }
 
         private void btnEspecialidades_Click(object sender, EventArgs e)
         {
-            using (FrmEspecialidades formulario = new FrmEspecialidades())
-            {
-                formulario.ShowDialog(this);
-            }
+            AbrirFormulario<FrmEspecialidades>();
         }
 
         private void btnTurnos_Click(object sender, EventArgs e)
         {
-            using (FrmTurnos formulario = new FrmTurnos())
-            {
-                formulario.ShowDialog(this);
-            }
+            AbrirFormulario<FrmTurnos>();
         }
 
         private void btnReportes_Click(object sender, EventArgs e)
         {
-            using (FrmReportes formulario = new FrmReportes())
+            AbrirFormulario<FrmReportes>();
+        }
+
+        private void AbrirFormulario<T>() where T : Form
+        {
+            T formulario = _serviceProvider.GetRequiredService<T>();
+
+            using (formulario)
             {
                 formulario.ShowDialog(this);
             }
         }
     }
 }
+

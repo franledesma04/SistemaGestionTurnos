@@ -15,10 +15,17 @@ namespace AppWinForms
         // null = paciente nuevo; con valor = modificación
         private int? _idSeleccionado = null;
 
+        // Constructor para el diseñador
+        public FrmPacientes()
+        {
+            InitializeComponent();
+            _repo = null!;
+        }
+
+        // Constructor para la aplicación
         public FrmPacientes(IGenericRepository<Paciente> repositorio)
         {
             InitializeComponent();
-
             _repo = repositorio;
         }
 
@@ -304,12 +311,24 @@ namespace AppWinForms
             if (respuesta != DialogResult.Yes)
                 return;
 
-            try
-            {
-                _repo.Eliminar(_idSeleccionado.Value);
+            try { 
+            var paciente = _repo.ObtenerPorId(_idSeleccionado.Value);
 
-                CargarGrilla();
-                LimpiarFormulario();
+            if (paciente == null)
+            {
+                MessageBox.Show(
+                    "No se encontró el paciente seleccionado.",
+                    "Atención",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            _repo.Eliminar(paciente);
+
+            CargarGrilla();
+            LimpiarFormulario();
             }
             catch (DbUpdateException)
             {

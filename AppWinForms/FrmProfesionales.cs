@@ -10,10 +10,17 @@ namespace AppWinForms
     public partial class FrmProfesionales : Form
     {
         private readonly ApplicationDbContext _context;
+        // Constructor para el diseñador
+        public FrmProfesionales()
+        {
+            InitializeComponent();
+            _context = null!;
+        }
+
+        // Constructor para la aplicación
         public FrmProfesionales(ApplicationDbContext context)
         {
             InitializeComponent();
-
             _context = context;
         }
 
